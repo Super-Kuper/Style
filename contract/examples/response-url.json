@@ -1,0 +1,16 @@
+{
+  "image_url": "https://s3.example.com/image-serverless/outputs/6f1d2c3b4a5e/keyframe_edit_00001_.png?X-Amz-Signature=example",
+  "telemetry": {
+    "gpu_cc": 8.9,
+    "gpu_class": "L40S",
+    "seconds": 18.2,
+    "width": 768,
+    "height": 1344,
+    "model_name": "qwen_image_edit_2511_fp8mixed.safetensors",
+    "seed": 20261113,
+    "steps": 20,
+    "cfg": 2.5,
+    "sampler": "euler",
+    "scheduler": "simple"
+  }
+}

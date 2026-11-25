@@ -1,0 +1,205 @@
+{
+  "input": {
+    "prompt": {
+      "1": {
+        "class_type": "UNETLoader",
+        "inputs": {
+          "unet_name": "qwen_image_edit_2511_fp8mixed.safetensors",
+          "weight_dtype": "default"
+        }
+      },
+      "2": {
+        "class_type": "CLIPLoader",
+        "inputs": {
+          "clip_name": "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+          "type": "qwen_image"
+        }
+      },
+      "3": {
+        "class_type": "VAELoader",
+        "inputs": {
+          "vae_name": "qwen_image_vae.safetensors"
+        }
+      },
+      "4": {
+        "class_type": "LoadImage",
+        "inputs": {
+          "image": "base.png"
+        }
+      },
+      "5": {
+        "class_type": "LoadImageMask",
+        "inputs": {
+          "image": "mask.png",
+          "channel": "red"
+        }
+      },
+      "6": {
+        "class_type": "ImageScaleToTotalPixels",
+        "inputs": {
+          "image": [
+            "4",
+            0
+          ],
+          "upscale_method": "lanczos",
+          "megapixels": 1.0
+        }
+      },
+      "7": {
+        "class_type": "VAEEncode",
+        "inputs": {
+          "pixels": [
+            "6",
+            0
+          ],
+          "vae": [
+            "3",
+            0
+          ]
+        }
+      },
+      "8": {
+        "class_type": "SetLatentNoiseMask",
+        "inputs": {
+          "samples": [
+            "7",
+            0
+          ],
+          "mask": [
+            "5",
+            0
+          ]
+        }
+      },
+      "9": {
+        "class_type": "TextEncodeQwenImageEdit",
+        "inputs": {
+          "clip": [
+            "2",
+            0
+          ],
+          "vae": [
+            "3",
+            0
+          ],
+          "image": [
+            "6",
+            0
+          ],
+          "prompt": "remove the glare from the door, keep everything else unchanged"
+        }
+      },
+      "10": {
+        "class_type": "CLIPTextEncode",
+        "inputs": {
+          "clip": [
+            "2",
+            0
+          ],
+          "text": ""
+        }
+      },
+      "11": {
+        "class_type": "KSampler",
+        "inputs": {
+          "model": [
+            "1",
+            0
+          ],
+          "positive": [
+            "9",
+            0
+          ],
+          "negative": [
+            "10",
+            0
+          ],
+          "latent_image": [
+            "8",
+            0
+          ],
+          "seed": 20261113,
+          "steps": 20,
+          "cfg": 2.5,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 0.85
+        }
+      },
+      "12": {
+        "class_type": "VAEDecode",
+        "inputs": {
+          "samples": [
+            "11",
+            0
+          ],
+          "vae": [
+            "3",
+            0
+          ]
+        }
+      },
+      "13": {
+        "class_type": "SaveImage",
+        "inputs": {
+          "images": [
+            "12",
+            0
+          ],
+          "filename_prefix": "keyframe_edit"
+        }
+      }
+    },
+    "parameter": {
+      "mode": "edit",
+      "scene_id": 2,
+      "width": 768,
+      "height": 1344,
+      "seed": 20261113,
+      "steps": 20,
+      "cfg": 2.5,
+      "sampler": "euler",
+      "scheduler": "simple",
+      "denoise": 0.85,
+      "instruction": "remove the glare from the door, keep everything else unchanged",
+      "base_asset": {
+        "asset_id": "5f0b4f4e-2e4a-4d0f-8a3f-0e2a1c9b7d61",
+        "content_hash": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+      },
+      "edit": {
+        "instruction": "remove the glare from the door, keep everything else unchanged",
+        "mask_asset_id": "c1a2b3c4-d5e6-4f70-8192-a3b4c5d6e7f8",
+        "mask_hash": "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae",
+        "strength": 0.85
+      },
+      "model": {
+        "id": "0a1b2c3d-4e5f-4a6b-8c9d-0e1f2a3b4c5d",
+        "slug": "qwen-image-edit-2511",
+        "name": "Qwen-Image-Edit-2511",
+        "license": "commercial",
+        "graph_revision": 2,
+        "graph_hash": "8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5"
+      }
+    },
+    "assets": [
+      {
+        "name": "base.png",
+        "url": "https://minio.example.com/video-gen/assets/base.png?X-Amz-Signature=example",
+        "sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+        "kind": "image",
+        "size": 184320
+      },
+      {
+        "name": "mask.png",
+        "url": "https://minio.example.com/video-gen/assets/mask.png?X-Amz-Signature=example",
+        "sha256": "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae",
+        "kind": "mask",
+        "size": 18432
+      }
+    ]
+  },
+  "policy": {
+    "executionTimeout": 900000,
+    "ttl": 900000
+  }
+}

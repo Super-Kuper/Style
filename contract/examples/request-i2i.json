@@ -1,0 +1,174 @@
+{
+  "input": {
+    "prompt": {
+      "1": {
+        "class_type": "UNETLoader",
+        "inputs": {
+          "unet_name": "qwen_image_edit_2511_fp8mixed.safetensors",
+          "weight_dtype": "default"
+        }
+      },
+      "2": {
+        "class_type": "CLIPLoader",
+        "inputs": {
+          "clip_name": "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+          "type": "qwen_image"
+        }
+      },
+      "3": {
+        "class_type": "VAELoader",
+        "inputs": {
+          "vae_name": "qwen_image_vae.safetensors"
+        }
+      },
+      "4": {
+        "class_type": "LoadImage",
+        "inputs": {
+          "image": "style_reference.png"
+        }
+      },
+      "5": {
+        "class_type": "ImageScale",
+        "inputs": {
+          "image": [
+            "4",
+            0
+          ],
+          "upscale_method": "lanczos",
+          "width": 768,
+          "height": 1344,
+          "crop": "center"
+        }
+      },
+      "6": {
+        "class_type": "VAEEncode",
+        "inputs": {
+          "pixels": [
+            "5",
+            0
+          ],
+          "vae": [
+            "3",
+            0
+          ]
+        }
+      },
+      "7": {
+        "class_type": "TextEncodeQwenImageEdit",
+        "inputs": {
+          "clip": [
+            "2",
+            0
+          ],
+          "vae": [
+            "3",
+            0
+          ],
+          "image": [
+            "5",
+            0
+          ],
+          "prompt": "Cinematic film still in the visual style of the reference: night street under rain, cold desaturated palette, hard practical light, single red accent. Keep the reference palette, lighting, lens and grain; replace the scene content with the described frame."
+        }
+      },
+      "8": {
+        "class_type": "CLIPTextEncode",
+        "inputs": {
+          "clip": [
+            "2",
+            0
+          ],
+          "text": "text, letters, numbers, logo, watermark, low quality, flat gray"
+        }
+      },
+      "9": {
+        "class_type": "KSampler",
+        "inputs": {
+          "model": [
+            "1",
+            0
+          ],
+          "positive": [
+            "7",
+            0
+          ],
+          "negative": [
+            "8",
+            0
+          ],
+          "latent_image": [
+            "6",
+            0
+          ],
+          "seed": 20261113,
+          "steps": 20,
+          "cfg": 2.5,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 0.65
+        }
+      },
+      "10": {
+        "class_type": "VAEDecode",
+        "inputs": {
+          "samples": [
+            "9",
+            0
+          ],
+          "vae": [
+            "3",
+            0
+          ]
+        }
+      },
+      "11": {
+        "class_type": "SaveImage",
+        "inputs": {
+          "images": [
+            "10",
+            0
+          ],
+          "filename_prefix": "keyframe_i2i"
+        }
+      }
+    },
+    "parameter": {
+      "mode": "i2i",
+      "scene_id": 1,
+      "width": 768,
+      "height": 1344,
+      "seed": 20261113,
+      "steps": 20,
+      "cfg": 2.5,
+      "sampler": "euler",
+      "scheduler": "simple",
+      "denoise": 0.65,
+      "prompt": "Cinematic film still in the visual style of the reference: night street under rain",
+      "style_reference": {
+        "asset_id": "5f0b4f4e-2e4a-4d0f-8a3f-0e2a1c9b7d61",
+        "content_hash": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+      },
+      "model": {
+        "id": "0a1b2c3d-4e5f-4a6b-8c9d-0e1f2a3b4c5d",
+        "slug": "qwen-image-edit-2511-i2i",
+        "name": "Qwen-Image-Edit-2511 i2i",
+        "license": "commercial",
+        "graph_revision": 1,
+        "graph_hash": "8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5"
+      }
+    },
+    "assets": [
+      {
+        "name": "style_reference.png",
+        "url": "https://minio.example.com/video-gen/styles/ref.png?X-Amz-Signature=example",
+        "sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+        "kind": "image",
+        "size": 184320
+      }
+    ]
+  },
+  "policy": {
+    "executionTimeout": 900000,
+    "ttl": 900000
+  }
+}

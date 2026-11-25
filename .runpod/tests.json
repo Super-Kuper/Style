@@ -1,0 +1,28 @@
+{
+  "tests": [
+    {
+      "name": "health_check",
+      "input": {
+        "action": "health"
+      },
+      "timeout": 900000
+    }
+  ],
+  "config": {
+    "gpuTypeId": "NVIDIA A100 80GB PCIe",
+    "gpuCount": 1,
+    "env": [
+      {
+        "key": "VOLUME_AUTOPOPULATE",
+        "value": "false"
+      }
+    ],
+    "allowedCudaVersions": [
+      "13.0",
+      "13.1",
+      "13.2",
+      "13.3",
+      "13.4"
+    ]
+  }
+}

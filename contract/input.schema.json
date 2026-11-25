@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/image-serverless/input.schema.json",
+  "title": "Image serverless worker input (image-serverless/v1)",
+  "description": "RunPod serverless input: a prepared ComfyUI API graph plus application snapshots (parameter, acceleration) and optional input assets (base image, mask, references).",
+  "type": "object",
+  "required": [
+    "input"
+  ],
+  "properties": {
+    "input": {
+      "type": "object",
+      "properties": {
+        "prompt": {
+          "type": "object",
+          "minProperties": 1,
+          "description": "Prepared ComfyUI API graph (node id -> {class_type, inputs}). The worker submits it unchanged; it never builds or edits the graph."
+        },
+        "parameter": {
+          "type": "object",
+          "description": "Application snapshot of generation parameters (model, mode, scene_id, seed, width, height, steps, cfg, sampler, scheduler, prompt, negative_prompt, ...). Used for tracing only, never to build the graph or to substitute telemetry facts."
+        },
+        "acceleration": {
+          "type": "object",
+          "description": "Application snapshot of acceleration settings (gpu_class, steps, use_turbo, ...). Used for tracing only, never to build the graph."
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "health"
+          ],
+          "description": "Health check without loading a model or running a graph; prompt is not required."
+        },
+        "assets": {
+          "type": "array",
+          "description": "Optional input files (edit base image, mask, references) delivered as presigned GET URLs. The worker downloads each file into the ComfyUI input directory under name; the graph references those names in LoadImage/LoadImageMask.",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "url"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+                "description": "File name (basename, no path segments); the graph references this name."
+              },
+              "url": {
+                "type": "string",
+                "pattern": "^https?://",
+                "description": "Presigned GET URL."
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$",
+                "description": "Expected sha256 of the file; the worker verifies it and fails the job on mismatch."
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "image",
+                  "mask"
+                ],
+                "description": "Advisory input kind: image (base/reference) or mask (edit mask). The worker only validates it; the graph decides how the file is used."
+              },
+              "size": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Expected file size in bytes; the worker verifies the downloaded size."
+              }
+            },
+            "additionalProperties": false
+          },
+          "maxItems": 8
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "action"
+            ],
+            "properties": {
+              "action": {
+                "const": "health"
+              }
+            }
+          },
+          "else": {
+            "required": [
+              "prompt"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "policy": {
+      "type": "object",
+      "description": "Optional RunPod policy (executionTimeout/ttl). The worker does not read it; RunPod applies it before the handler runs.",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

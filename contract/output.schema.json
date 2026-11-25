@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/image-serverless/output.schema.json",
+  "title": "Image serverless worker output (image-serverless/v1)",
+  "description": "Result of one job: the generated image (exactly one of image or image_url) and the measured telemetry.",
+  "type": "object",
+  "required": [
+    "telemetry"
+  ],
+  "properties": {
+    "image": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Base64-encoded image (PNG/JPEG/WebP) for small results (see OUTPUT_INLINE_MAX_MB / OUTPUT_INLINE_BUDGET_MB)."
+    },
+    "image_url": {
+      "type": "string",
+      "pattern": "^https?://",
+      "description": "Presigned HTTP(S) URL for large results uploaded to S3-compatible storage (see S3_* and OUTPUT_URL_TTL_SECONDS)."
+    },
+    "telemetry": {
+      "type": "object",
+      "description": "Execution-fact telemetry. Every required field is measured by the worker from the executed graph, the produced image bytes and torch.cuda; expected values from parameter/acceleration are never substituted.",
+      "required": [
+        "gpu_cc",
+        "gpu_class",
+        "seconds",
+        "width",
+        "height",
+        "model_name",
+        "seed",
+        "steps",
+        "cfg",
+        "sampler",
+        "scheduler"
+      ],
+      "properties": {
+        "gpu_cc": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Compute capability of the GPU that ran the job (torch.cuda), e.g. 8.6 for RTX A6000, 8.9 for L40S."
+        },
+        "gpu_class": {
+          "type": "string",
+          "minLength": 1,
+          "description": "GPU class reported by torch.cuda, for example RTX A6000 or L40S."
+        },
+        "seconds": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Measured wall-clock seconds from graph submit to history completion."
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Fact width of the produced image in pixels, read from its header."
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Fact height of the produced image in pixels, read from its header."
+        },
+        "model_name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Diffusion model file name read from the executed graph loader node (unet_name/ckpt_name)."
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Seed read from the executed sampler graph (KSampler.seed, RandomNoise.noise_seed, ...)."
+        },
+        "steps": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Sampler steps read from the executed graph."
+        },
+        "cfg": {
+          "type": "number",
+          "minimum": 0,
+          "description": "CFG scale read from the executed sampler/guider node."
+        },
+        "sampler": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Sampler name read from the executed graph (KSampler.sampler_name, KSamplerSelect.sampler_name)."
+        },
+        "scheduler": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Scheduler name read from the executed graph (KSampler.scheduler, BasicScheduler.scheduler)."
+        },
+        "text_detected": {
+          "type": "boolean",
+          "description": "OCR fact for keyframe validation. Omitted by this worker: there is no OCR engine in the image, so the field is not reported (never a silent false). The application records the OCR fact itself."
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "oneOf": [
+    {
+      "required": [
+        "image"
+      ]
+    },
+    {
+      "required": [
+        "image_url"
+      ]
+    }
+  ],
+  "not": {
+    "required": [
+      "image",
+      "image_url"
+    ]
+  },
+  "additionalProperties": true
+}

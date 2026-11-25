@@ -1,0 +1,16 @@
+{
+  "image": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+  "telemetry": {
+    "gpu_cc": 8.6,
+    "gpu_class": "RTX A6000",
+    "seconds": 7.4,
+    "width": 768,
+    "height": 1344,
+    "model_name": "flux-2-klein-4b.safetensors",
+    "seed": 20261113,
+    "steps": 4,
+    "cfg": 1.0,
+    "sampler": "euler",
+    "scheduler": "simple"
+  }
+}

@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "image-refs-serverless-worker"
+version = "1.0.0"
+description = "RunPod serverless worker for the refs image profile: Qwen-Image-Edit 2511 compose/identity/clean (contract image-serverless/v1)"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "video_gen image serverless worker" }]
+keywords = ["runpod", "serverless", "comfyui", "image", "keyframe", "qwen-image-edit", "references"]
+classifiers = [
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+]
+
+# The worker executes a prepared ComfyUI API graph and returns
+# `{image|image_url, telemetry}` (contract/worker-contract.md).
+dependencies = [
+    "httpx>=0.27,<0.29",
+    "runpod==2.2.1",
+    "boto3>=1.35",
+]
+
+[project.scripts]
+image-worker = "image_worker.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]

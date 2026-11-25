@@ -1,0 +1,40 @@
+# =============================================================================
+# Общие каталоги моделей на сетевом томе RunPod.
+#
+# Том (layout) содержит:
+#   /runpod-volume/models/{diffusion_models,text_encoders,loras,vae,vae_approx,
+#                          clip,clip_vision,checkpoints,unet,...}
+#   /runpod-volume/custom_nodes/... (опционально, LINK_VOLUME_NODES=true)
+#   /runpod-volume/encoder-cache/  (резерв под кэш энкодеров/кондиционирования)
+#
+# Это файл ComfyUI extra_model_paths: пути ДОБАВЛЯЮТСЯ к запечённым в базовом
+# образе моделям, а не заменяют их. ComfyUI автоматически читает
+# extra_model_paths.yaml из своего рабочего каталога; docker/entrypoint.sh
+# копирует этот файл в ${COMFYUI_DIR}/extra_model_paths.yaml перед стартом
+# (COMFY_KEEP_EXTRA=1 — оставить файл базового образа).
+#
+# base_path — точка монтирования тома RunPod. Если VOLUME_ROOT задан иначе,
+# entrypoint подставляет его вместо /runpod-volume при копировании файла.
+# Весов и секретов в файле нет: только пути.
+# =============================================================================
+
+runpod_volume_models:
+    base_path: /runpod-volume/models
+    # Модели ищутся по именам подкаталогов тома. Оба имени (unet/diffusion_models,
+    # clip/text_encoders) нужны для совместимости legacy- и новых загрузчиков.
+    is_default: true
+    checkpoints: checkpoints
+    diffusion_models: diffusion_models
+    unet: unet
+    text_encoders: text_encoders
+    clip: clip
+    clip_vision: clip_vision
+    loras: loras
+    vae: vae
+    vae_approx: vae_approx
+    upscale_models: upscale_models
+    embeddings: embeddings
+    controlnet: controlnet
+
+    # custom_nodes с тома сюда НЕ прописываем: extra_model_paths не подключает
+    # ноды. Для этого есть LINK_VOLUME_NODES=true в docker/entrypoint.sh.

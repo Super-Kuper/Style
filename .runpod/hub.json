@@ -1,0 +1,142 @@
+{
+  "title": "Image Refs Serverless — Qwen-Image-Edit 2511 compose",
+  "description": "ComfyUI serverless worker for the first-frame-by-reference flow: Qwen-Image-Edit 2511 compose/identity/clean only (Apache-2.0). Executes a prepared ComfyUI API graph built by the video_gen catalog, accepts style/location/character references and base/mask assets, and returns the PNG plus execution-fact telemetry (GPU, seconds, size, model, seed, steps, cfg, sampler, scheduler). The manifest ships only the three pinned Qwen-Image-Edit 2511 files (~30.16 GB); t2i models are out of scope. Designed to reuse the existing image-serverless network volume.",
+  "type": "serverless",
+  "category": "image",
+  "config": {
+    "runsOn": "GPU",
+    "containerDiskInGb": 40,
+    "gpuCount": 1,
+    "gpuIds": "AMPERE_48,ADA_48_PRO,AMPERE_80",
+    "allowedCudaVersions": [
+      "13.0",
+      "13.1",
+      "13.2",
+      "13.3",
+      "13.4"
+    ],
+    "env": [
+      {
+        "key": "VOLUME_AUTOPOPULATE",
+        "input": {
+          "type": "boolean",
+          "name": "Auto-download models",
+          "description": "Download the three pinned Qwen-Image-Edit 2511 files to the attached network volume at worker boot. On a warm image-serverless volume nothing is downloaded; only the metadata is checked.",
+          "default": true,
+          "trueValue": "true",
+          "falseValue": "false"
+        }
+      },
+      {
+        "key": "VOLUME_VERIFY",
+        "input": {
+          "name": "Volume verification mode",
+          "type": "string",
+          "description": "fast (default) — trust the recorded size+mtime in models/.populate-state.tsv, so a warm cold start is seconds instead of reading 30.16 GB; full — read sha256 of every manifest file before the handler starts; off — skip the check (debug only).",
+          "default": "fast",
+          "advanced": true
+        }
+      },
+      {
+        "key": "VOLUME_BACKGROUND_VERIFY",
+        "input": {
+          "type": "boolean",
+          "name": "Background sha256 verification",
+          "description": "After the handler starts, verify the three manifest files against their pinned sha256 in the background ([populate-verify] in the log). Disable for latency-critical sessions; the volume is still verified when metadata changes.",
+          "default": true,
+          "trueValue": "true",
+          "falseValue": "false",
+          "advanced": true
+        }
+      },
+      {
+        "key": "HF_TOKEN",
+        "input": {
+          "name": "Hugging Face token",
+          "type": "string",
+          "description": "Optional — only needed if the public Qwen repositories in models-manifest.txt are replaced with gated mirrors.",
+          "default": "",
+          "advanced": true
+        }
+      },
+      {
+        "key": "JOB_TIMEOUT_SECONDS",
+        "input": {
+          "name": "Job timeout (seconds)",
+          "type": "number",
+          "description": "Maximum time a single image job may run before the worker aborts it. Must be less than or equal to the endpoint timeout (1200 s recommended for compose).",
+          "min": 120,
+          "max": 3600,
+          "default": 900,
+          "advanced": true
+        }
+      },
+      {
+        "key": "COMFY_BOOT_TIMEOUT_SECONDS",
+        "input": {
+          "name": "ComfyUI boot timeout (seconds)",
+          "type": "number",
+          "description": "How long the worker waits for the local ComfyUI server to become ready.",
+          "min": 60,
+          "max": 1800,
+          "default": 600,
+          "advanced": true
+        }
+      },
+      {
+        "key": "LINK_VOLUME_NODES",
+        "input": {
+          "type": "boolean",
+          "name": "Use custom nodes from the volume",
+          "description": "Symlink custom_nodes from /runpod-volume/custom_nodes into ComfyUI. Leave disabled: the refs profile is core ComfyUI only and the image starts with --disable-all-custom-nodes.",
+          "default": false,
+          "trueValue": "true",
+          "falseValue": "false",
+          "advanced": true
+        }
+      },
+      {
+        "key": "S3_ENDPOINT",
+        "input": {
+          "name": "S3 endpoint",
+          "type": "string",
+          "description": "Optional S3/MinIO endpoint. Configure S3_* to return large images as presigned image_url instead of inline base64.",
+          "default": "",
+          "advanced": true
+        }
+      },
+      {
+        "key": "S3_ACCESS_KEY",
+        "input": {
+          "name": "S3 access key",
+          "type": "string",
+          "description": "S3/MinIO access key (secret — endpoint env only).",
+          "default": "",
+          "advanced": true
+        }
+      },
+      {
+        "key": "S3_SECRET_KEY",
+        "input": {
+          "name": "S3 secret key",
+          "type": "string",
+          "description": "S3/MinIO secret key (secret — endpoint env only).",
+          "default": "",
+          "advanced": true
+        }
+      },
+      {
+        "key": "S3_BUCKET",
+        "input": {
+          "name": "S3 bucket",
+          "type": "string",
+          "description": "Bucket for large image output (alias: OUTPUT_BUCKET).",
+          "default": "",
+          "advanced": true
+        }
+      }
+    ]
+  },
+  "version": "v1.0.0",
+  "changelog": "## v1.0.0\n\n- Initial refs profile: dedicated image worker for the first-frame-by-reference flow (Qwen-Image-Edit 2511 compose/identity/clean).\n- Manifest trimmed to the three pinned files of the model (~30.16 GB); FLUX.2 klein 4B and Qwen-Image-2512 (t2i) are out of scope and not in the manifest. The existing image-serverless network volume can be reused: populate checks only these rows, ComfyUI still sees the other files through extra_model_paths.yaml (unverified here).\n- Image diet: the baked `/opt/comfyui-baked` copy and the base pod custom nodes (ComfyUI-Manager, ComfyUI-KJNodes, Civicomfy, ComfyUI-RunpodDirect) are removed at build time; ComfyUI starts with `--disable-all-custom-nodes --disable-metadata`. No ComfyUI-Manager network tasks on boot, no custom-node imports.\n- Worker code, handler and contract `image-serverless/v1` are unchanged: the worker still executes the prepared ComfyUI API graph and returns measured telemetry.\n- Recommended endpoint: QUEUE, 48 GB (AMPERE_48/ADA_48_PRO), max=1, idleTimeout 300–600, timeout 1200 s, `RUNPOD_INIT_TIMEOUT=1800`. Warm worker (or pre-warm) is the real first-frame latency lever; the cold first job still stages ~30 GB.\n- Quality: the Qwen-Image-Edit-2511 model card uses 40 steps; compose runs 20 steps (already half), draft 10. 15 steps only after a live A/B on faces/hands/text/geometry — the first frame is fed to H3, so its degradation carries into the video.\n"
+}
